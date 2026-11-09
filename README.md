@@ -12,7 +12,7 @@ Currently, the studio's functionality is focused on coding, working with text, r
 Toshy's architecture is modular. Modules can be easily created, connected, and disconnected on the fly without restarting the agent. And if something goes wrong, a crashed module usually won't bring down the entire agent.
 
 ### Graph Engineering
-You can easily build controlled model workflows of any complexity using a convenient graphical representation. Everything is simple, with no complicated puzzles involved.
+You can easily build controlled model workflow topologys of any complexity using a convenient graphical representation. Everything is simple, with no complicated puzzles involved.
 
 ### Parallel Work
 Toshy Studio is designed to work with multiple chats simultaneously, allowing you to track generation status and tasks being performed or already completed in each session.
@@ -21,7 +21,7 @@ Toshy Studio is designed to work with multiple chats simultaneously, allowing yo
 Toshy Studio is designed to accommodate large amounts of functionality while maintaining simplicity and accessibility. Nothing is hidden in chaotic places behind five different tabs.
 
 ### All in One Application
-Out of the box, Toshy Studio allows you to draw sketches, create schemes on a board, and work with text in an editor, eliminating the need to constantly switch between 3–4 apps.
+Out of the box, Toshy Studio allows you to draw sketches, create schemes on a board, and work with text in editor, eliminating the need to constantly switch between 3–4 apps.
 
 ### Plugins System
 You can create and install plugins for Toshy Studio, extending the functionality of both the agent itself and the studio app.
@@ -39,6 +39,14 @@ Roadmap
 - Using Toshy without the application, a server version.
 
 ## Installation
+Linux
+```Linux
+
+```
+Windows
+```PowerShell
+
+```
 
 ## License
 Toshy is distributed under the Apache License 2.0.
