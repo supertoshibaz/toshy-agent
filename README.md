@@ -1,4 +1,10 @@
 # <div align="center">Toshy Agent
+<p align="center">
+<a href="https://discord.gg/DcP5z5AtZG"><img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord"></a>
+<a href="https://boosty.to/toshibaz"><img src="https://img.shields.io/badge/Boosty-F15F2C?style=for-the-badge&logo=boosty&logoColor=white" alt="Boosty"></a>
+<a href="https://github.com/supertoshibaz/toshy-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge" alt="License: Apache 2.0"></a>
+<a href="https://huggingface.co/supertoshibaz"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face"></a>
+</p>
 
 English · [Русский](README_ru.md)
 </div>
