@@ -42,11 +42,11 @@ Toshy находится в активной разработке. Какие т
 ## Установка
 Linux
 ```Linux
-
+curl -fsSL https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/install.sh | bash
 ```
 Windows
 ```PowerShell
-
+iex (irm https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/install.ps1)
 ```
 
 ## Лицензия
