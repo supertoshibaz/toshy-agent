@@ -1,0 +1,20 @@
+{
+  "servers": {
+    "pylsp": {
+      "category": "code",
+      "command": "servers/code/pylsp/.venv/bin/python",
+      "command_windows": "servers/code/pylsp/.venv/Scripts/python.exe",
+      "args": ["-m", "pylsp"],
+      "file_extensions": [".py"],
+      "enabled": true
+    },
+    "harper_ls": {
+      "category": "linguistic",
+      "command": "servers/linguistic/en/harper-ls",
+      "command_windows": "servers/linguistic/en/harper-ls.exe",
+      "args": ["--stdio"],
+      "file_extensions": [".md", ".txt"],
+      "enabled": true
+    }
+  }
+}
