@@ -40,7 +40,7 @@ def gui(root, arguments=()):
     program = layout.program_root(root, current, state)
     if not (program / '.complete').is_file():
         raise ReleaseError('Active version is incomplete. Run repair.')
-    from .environments import launch
+    from .environments import launch, environment as runtime_environment
     command, environment = launch(root, state)
     if os.name == 'nt':
         if os.environ.get('TOSHY_GUI_PROCESS') == str(os.getpid()):
@@ -55,14 +55,24 @@ def gui(root, arguments=()):
         directories.extend(str(Path(p).parent) for p in (system.executable('git'), system.executable('docker')) if p)
         environment['PATH'] = os.pathsep.join([*directories, environment['PATH']])
         if os.environ.get('TOSHY_GUI_PROCESS') == str(os.getpid()):
-            if os.path.normcase(os.path.abspath(sys.executable)) != os.path.normcase(os.path.abspath(command[0])):
+            # python.exe and pythonw.exe share the same virtual environment.
+            # Compare its prefix, not the interpreter executable's filename.
+            expected_prefix = os.path.normcase(str(runtime_environment(root, current, state).resolve()))
+            actual_prefix = os.path.normcase(str(Path(sys.prefix).resolve()))
+            if actual_prefix != expected_prefix:
                 # An old pinned host must not import a new release with retired dependencies.
+                if environment.get('TOSHY_RUNTIME_HANDOFF') == expected_prefix:
+                    raise ReleaseError('Could not select the active Python environment after one retry. '
+                                       f'Expected: {expected_prefix}; current: {actual_prefix}. Run install.ps1 again.')
                 print('The launcher environment is stale; switching to the active Python environment.', flush=True)
+                environment['TOSHY_RUNTIME_HANDOFF'] = expected_prefix
                 environment.pop('TOSHY_WINDOWS_HOST_PROCESS', None)
                 environment.pop('TOSHY_GUI_PROCESS', None)
                 startup = Path(root) / 'launcher/release_tools/windows_startup.py'
                 pythonw = Path(command[0]).with_name('pythonw.exe')
                 os.execve(str(pythonw), [str(pythonw), str(startup), '--toshy-inprocess', *arguments], environment)
+            environment.pop('TOSHY_RUNTIME_HANDOFF', None)
+            os.environ.pop('TOSHY_RUNTIME_HANDOFF', None)
             import runpy
             os.environ.update(environment)
             sys.path.insert(0, str(program))
