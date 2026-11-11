@@ -1,0 +1,6 @@
+{
+  "color": "#34d399",
+  "icon": "icon.svg",
+  "display_name": "File Manager",
+  "default_dock_position": "left_bottom"
+}

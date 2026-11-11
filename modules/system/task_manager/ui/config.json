@@ -1,0 +1,6 @@
+{
+  "color": "#60a5fa",
+  "icon": "icon.svg",
+  "display_name": "Task Manager",
+  "default_dock_position": "left_top"
+}
