@@ -71,14 +71,20 @@ def _desktop_directory():
 
 def _registered_windows_shortcut(path):
     """Recognize an unchanged shortcut owned by another Toshy installation."""
-    data = json.loads(powershell("$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:TOSHY_SHORTCUT); @{arguments=$s.Arguments; description=$s.Description} | ConvertTo-Json -Compress", shortcut=path))
+    data = json.loads(powershell("$s=(New-Object -ComObject WScript.Shell).CreateShortcut($env:TOSHY_SHORTCUT); @{arguments=$s.Arguments; target=$s.TargetPath; description=$s.Description} | ConvertTo-Json -Compress", shortcut=path))
     match = re.match(r'^\s*"([^"]+)"', data.get('arguments', ''))
-    if data.get('description') != 'Toshy' or match is None:
+    if data.get('description') != 'Toshy':
         return False
-    script = Path(match[1])
-    if script.name != 'toshy.py' or script.parent.name not in {'launcher', 'bin'}:
+    target = Path(data.get('target', ''))
+    script = Path(match[1]) if match else None
+    if target.name.lower() == 'toshy.exe' and target.parent.name == 'launcher':
+        previous_root = target.parent.parent
+    elif script is not None and script.name == 'windows_startup.py' and script.parent.name == 'release_tools':
+        previous_root = script.parents[2]
+    elif script is not None and script.name == 'toshy.py' and script.parent.name in {'launcher', 'bin'}:
+        previous_root = script.parent.parent
+    else:
         return False
-    previous_root = script.parent.parent
     marker = read_json(previous_root / 'installation.json')
     receipts = [*marker.get('external_files', []), *read_json(previous_root / 'launcher-receipts.json', [])]
     return (marker.get('product') == 'Toshy' and marker.get('root') == str(previous_root)
@@ -241,9 +247,6 @@ def _windows(publication, root, state, program, python, launcher, icon, desktop)
         command = publication.attempt('Command launcher', lambda: publication.write(
             bindir / 'toshy.cmd', '@echo off\r\n"%~dp0' + os.path.relpath(python, bindir).replace('/', '\\') +
             '" "%~dp0toshy.py" %*\r\n', label='Command launcher'))
-        publication.attempt('Local launcher', lambda: publication.write(
-            root / 'start.cmd', '@echo off\r\n"%~dp0' + os.path.relpath(python.with_name('pythonw.exe'), root).replace('/', '\\') +
-            '" "%~dp0bin\\toshy.py" %*\r\n', label='Local launcher'))
     if command:
         def publish_path():
             result = json.loads(powershell('''$p=[Environment]::GetEnvironmentVariable('Path','User');
@@ -273,6 +276,17 @@ if($changed) {
     if script is None:
         publication.report['warnings'].append('No command entry point was created. Run .venv\\Scripts\\python.exe run_ui.py from the agent folder.')
         return
+    from .windows_host import build as build_host
+    host = publication.attempt('Windows application host', lambda: build_host(publication, root, state, python, shortcut_icon))
+    startup = root / 'launcher/release_tools/windows_startup.py'
+    gui_target = host or python.with_name('pythonw.exe')
+    gui_arguments = '' if host else '"' + str(startup) + '"'
+    if not host:
+        publication.report['warnings'].append('Toshy.exe could not be built; logged Python startup remains available.')
+    local_command = ('@echo off\r\n"%~dp0launcher\\Toshy.exe" %*\r\n' if host else
+                     '@echo off\r\n"%~dp0' + os.path.relpath(gui_target, root).replace('/', '\\') +
+                     '" "%~dp0launcher\\release_tools\\windows_startup.py" %*\r\n')
+    publication.attempt('Local launcher', lambda: publication.write(root / 'start.cmd', local_command, label='Local launcher'))
     uninstaller = publication.attempt('Uninstaller entry point', lambda: publication.write(
         root / 'launcher/uninstall.py',
         'import sys\nfrom pathlib import Path\n'
@@ -305,9 +319,14 @@ if($changed) {
         try:
             powershell('''$shell=New-Object -ComObject WScript.Shell;
 $s=$shell.CreateShortcut($env:TOSHY_SHORTCUT);$s.TargetPath=$env:TOSHY_PYTHON;
-$s.Arguments='"'+$env:TOSHY_ENTRYPOINT+'"';$s.WorkingDirectory=$env:TOSHY_ROOT;
+$s.Arguments=$env:TOSHY_ARGUMENTS;$s.WorkingDirectory=$env:TOSHY_ROOT;
 $s.Description='Toshy';$s.IconLocation=$env:TOSHY_ICON;$s.Save()''',
-                       shortcut=temporary, python=python.with_name('pythonw.exe'), entrypoint=script, root=root, icon=shortcut_icon)
+                       shortcut=temporary, python=gui_target, arguments=gui_arguments, root=root, icon=shortcut_icon)
+            from .windows_shell import app_id, set_shortcut_app_id
+            try:
+                set_shortcut_app_id(temporary, app_id(root))
+            except OSError as error:
+                publication.report['warnings'].append('Shortcut taskbar identity: ' + str(error))
             os.replace(temporary, path)
             return publication.record(path, previous, label)
         finally:
@@ -316,10 +335,9 @@ $s.Description='Toshy';$s.IconLocation=$env:TOSHY_ICON;$s.Save()''',
     if local:
         state['local_launcher'] = str(local)
     def publish_known_folder(name, filename, label):
-        directory = powershell("[Environment]::GetFolderPath($env:TOSHY_FOLDER)", folder=name)
-        if not directory or not Path(directory).is_absolute():
-            raise RuntimeError('Windows did not return an absolute ' + name + ' directory.')
-        return make_shortcut(Path(directory) / filename, label)
+        from .windows_shell import known_folder
+        directory = known_folder(name)
+        return make_shortcut(directory / filename, label)
     publication.attempt('Start menu shortcut', lambda: publish_known_folder('Programs', 'Toshy/Toshy.lnk', 'Start menu shortcut'))
     if desktop:
         publication.attempt('Desktop shortcut', lambda: publish_known_folder('DesktopDirectory', 'Toshy.lnk', 'Desktop shortcut'))

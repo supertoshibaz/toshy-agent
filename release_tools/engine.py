@@ -142,7 +142,14 @@ class Installer:
                 self.network.retry(ConnectionError('Package download interrupted.'), attempt)
                 attempt += 1
                 continue
-            raise ReleaseError(f'Command failed ({process.returncode}). See {self.root / "install.log"}\n' + output[-1800:])
+            detail = None
+            if os.name == 'nt':
+                from .windows_runtime import explain_exit
+                detail = explain_exit(args[0], process.returncode)
+            detail = detail or f'Command failed ({process.returncode}).'
+            with (self.root / 'install.log').open('a', encoding='utf-8') as log:
+                log.write('\nERROR: ' + detail + '\n')
+            raise ReleaseError(f'{detail} See {self.root / "install.log"}\n' + output[-1800:])
 
     def state(self):
         return layout.owned(self.root)
@@ -187,6 +194,7 @@ class Installer:
             system.apply(self, detected, pending)
         finally:
             added = [p for p in pending if system.installed(detected, p)]
+            added = [p for p in added if p != 'Microsoft.VCRedist.2015+.x64']
             if before is not None:
                 added = sorted(system.snapshot(detected) - before)
             state['system_packages'] = sorted(set(state.get('system_packages', [])) | set(added))
@@ -233,8 +241,19 @@ class Installer:
             archive = self.root / 'cache' / ('harper-' + harper['version'] + ('.zip' if os.name == 'nt' else '.tar.gz'))
             self.network.download(item['url'], archive, digest=item['sha256'], size=item['size'])
             install_binary(archive, binary, name)
-        self.run([binary, '--version'])
-        return {'pylsp': str(python_in(venv)), 'harper_ls': str(binary)}
+        harper_path = str(binary)
+        try:
+            self.run([binary, '--version'])
+        except (ReleaseError, OSError) as error:
+            if self.cancel.is_set():
+                raise
+            harper_path = None
+            warning = 'Harper is unavailable; Studio will be installed without Harper grammar diagnostics. ' + str(error)
+            self.progress('WARNING: ' + warning)
+            self.progress('Run Toshy repair after resolving the missing runtime to retry Harper.')
+            with (self.root / 'install.log').open('a', encoding='utf-8') as log:
+                log.write('\nWARNING: ' + warning + '\n')
+        return {'pylsp': str(python_in(venv)), 'harper_ls': harper_path}
 
     def prepare(self, *, repository='', local_source=None, components=(), skip_system=False, release_info=None):
         if not (self.root / 'installation.json').exists() or layout.is_portable(self.root):
@@ -404,9 +423,8 @@ class Installer:
                 lsp_config = self.root / 'data/elements/lsp/lsp_config.json'
                 conf = layout.read_json(lsp_config, {'servers': {}})
                 base = json.loads((program / 'elements/lsp/lsp_defaults.json').read_text(encoding='utf-8'))
-                for name, executable in pending['lsp'].items():
-                    server = conf['servers'].setdefault(name, base['servers'][name])
-                    server.update(command=executable, command_windows=executable)
+                from .lsp_config import configure
+                configure(conf, base, pending['lsp'])
                 layout.write_json(lsp_config, conf)
                 if state.get('current', {}).get('key') != pending['key']:
                     state['previous'] = state.get('current')

@@ -42,7 +42,7 @@ def apply_and_start(root, progress, *, wait_seconds=180, startup_seconds=90):
         state = layout.owned(root)
         ready = root / 'runtime/installer' / ('startup-' + uuid.uuid4().hex + '.json')
         token = uuid.uuid4().hex
-        command, env = launch(root, state, ready_file=ready)
+        command, env = launch(root, state, ready_file=ready, native_host=True)
         env['TOSHY_UPDATE_READY_TOKEN'] = token
         trial_dir = ready.with_suffix('.processes')
         env['TOSHY_UPDATE_TRIAL_DIR'] = str(trial_dir)
@@ -196,7 +196,7 @@ def main(argv=None):
                 from .portable import recover
                 with layout.lock(args.root):
                     recover(Installer(args.root), layout.owned(args.root))
-                command, env = launch(args.root, layout.owned(args.root))
+                command, env = launch(args.root, layout.owned(args.root), native_host=True)
                 subprocess.Popen(command, env=env, cwd=args.root, stdin=subprocess.DEVNULL,
                     start_new_session=os.name != 'nt', creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
             except Exception as error:

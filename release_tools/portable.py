@@ -372,9 +372,8 @@ def activate(engine, *, shortcuts=True, wait_for_startup=False):
             path = root / 'elements/lsp/lsp_config.json'
             conf = layout.read_json(path, {'servers': {}})
             defaults = layout.read_json(root / 'elements/lsp/lsp_defaults.json')
-            for name, executable in info['lsp'].items():
-                server = conf['servers'].setdefault(name, dict(defaults['servers'][name]))
-                server.update(command=executable, command_windows=executable)
+            from .lsp_config import configure
+            configure(conf, defaults, info['lsp'])
             layout.write_json(path, conf)
             engine.verify_runtime(root, environment=environment(root, info, state), data=resource_root(root, info))
             if current and (current['key'] != info['key'] or current.get('environment') != info.get('environment')):

@@ -45,6 +45,9 @@ def executable(name):
 
 
 def installed(system, package):
+    if system['os'] == 'windows' and package == 'Microsoft.VCRedist.2015+.x64':
+        from .windows_runtime import installed as runtime_installed
+        return runtime_installed()
     manager = system['manager']
     if manager == 'winget':
         from .windows_packages import installed as native_installed
@@ -67,6 +70,7 @@ def installed(system, package):
 def package_plan(system, components):
     if system['os'] == 'windows':
         plan = ([('Git.Git', 'git')] if 'git' in components and not executable('git') else []) + ([('Docker.DockerDesktop', 'docker')] if 'docker' in components and not executable('docker') else [])
+        plan.insert(0, ('Microsoft.VCRedist.2015+.x64', 'runtime'))
         return [(package, kind) for package, kind in plan if not installed(system, package)]
     packages = {
         'apt-get': ['libegl1', 'libopengl0', 'libxcb-cursor0', 'libxkbcommon-x11-0', 'libxcb-icccm4', 'libxcb-keysyms1', 'libxcb-shape0', 'libxcb-xinerama0', 'libxcb-xfixes0', 'libxcb-render-util0'],
@@ -129,6 +133,13 @@ def command(system, packages, *, remove=False):
 
 
 def apply(engine, detected, packages, *, remove=False):
+    if detected['os'] == 'windows':
+        from . import windows_runtime
+        if windows_runtime.PACKAGE in packages:
+            if not remove:
+                windows_runtime.install(engine)
+            # This shared prerequisite must not be uninstalled with Toshy.
+            packages = [p for p in packages if p != windows_runtime.PACKAGE]
     if not packages:
         return
     if detected['os'] == 'windows' and not shutil.which('winget'):

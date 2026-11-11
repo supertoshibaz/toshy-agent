@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 from .network import ReleaseError
 
 PACKAGES = {
+    'Microsoft.VCRedist.2015+.x64': ('Microsoft Visual C++ x64 Runtime', r'Microsoft Corporation'),
     'Git.Git': ('Git for Windows', r'Johannes Schindelin|Git for Windows'),
     'Docker.DockerDesktop': ('Docker Desktop', r'Docker(?:,? Inc\.?)?'),
 }

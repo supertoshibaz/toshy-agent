@@ -16,15 +16,20 @@ from .network import Network, ReleaseError
 
 def gui(root, arguments=()):
     journal = layout.read_json(Path(root) / 'transaction.json')
-    if journal.get('status') in {'activating-portable', 'awaiting-startup'}:
+    trial_token = os.environ.get('TOSHY_UPDATE_READY_TOKEN')
+    own_trial = (journal.get('status') == 'awaiting-startup' and bool(trial_token)
+                 and trial_token == journal.get('ready_token')
+                 and os.environ.get('TOSHY_UPDATE_READY_FILE') == journal.get('ready_file'))
+    if journal.get('status') in {'activating-portable', 'awaiting-startup'} and not own_trial:
         owner = journal.get('updater_pid')
         if owner and owner != os.getpid():
             try:
-                os.kill(int(owner), 0)
+                active_owner = layout._process_running(int(owner))
             except ProcessLookupError:
                 pass
             else:
-                raise ReleaseError('Toshy is being updated. Wait for the update window to finish.')
+                if active_owner:
+                    raise ReleaseError('Toshy is being updated. Wait for the update window to finish.')
         from .portable import recover
         with layout.lock(root):
             recover(Installer(root), layout.owned(root))
@@ -38,11 +43,40 @@ def gui(root, arguments=()):
     from .environments import launch
     command, environment = launch(root, state)
     if os.name == 'nt':
+        if os.environ.get('TOSHY_GUI_PROCESS') == str(os.getpid()):
+            # The dedicated host already initialized the selected virtual env.
+            # Preserve the updater's one-use startup acknowledgement.
+            for key in ('TOSHY_UPDATE_READY_FILE', 'TOSHY_UPDATE_READY_TOKEN', 'TOSHY_UPDATE_TRIAL_DIR'):
+                if os.environ.get(key):
+                    environment[key] = os.environ[key]
         directories = []
         for base in filter(None, (os.environ.get('PROGRAMFILES'), os.environ.get('LOCALAPPDATA'))):
             directories.extend(str(Path(base) / tail) for tail in ('Git/cmd', 'Programs/Git/cmd', 'Docker/Docker/resources/bin') if (Path(base) / tail).is_dir())
         directories.extend(str(Path(p).parent) for p in (system.executable('git'), system.executable('docker')) if p)
         environment['PATH'] = os.pathsep.join([*directories, environment['PATH']])
+        if os.environ.get('TOSHY_GUI_PROCESS') == str(os.getpid()):
+            if os.path.normcase(os.path.abspath(sys.executable)) != os.path.normcase(os.path.abspath(command[0])):
+                # An old pinned host must not import a new release with retired dependencies.
+                print('The launcher environment is stale; switching to the active Python environment.', flush=True)
+                environment.pop('TOSHY_WINDOWS_HOST_PROCESS', None)
+                environment.pop('TOSHY_GUI_PROCESS', None)
+                startup = Path(root) / 'launcher/release_tools/windows_startup.py'
+                pythonw = Path(command[0]).with_name('pythonw.exe')
+                os.execve(str(pythonw), [str(pythonw), str(startup), '--toshy-inprocess', *arguments], environment)
+            import runpy
+            os.environ.update(environment)
+            sys.path.insert(0, str(program))
+            sys.argv = [str(program / 'run_ui.py'), *arguments]
+            runpy.run_path(str(program / 'run_ui.py'), run_name='__main__')
+            return
+        from .windows_host import available
+        host = Path(root) / 'launcher/Toshy.exe'
+        if available(root, command[0]):
+            os.execve(str(host), [str(host), *arguments], environment)
+        startup = Path(root) / 'launcher/release_tools/windows_startup.py'
+        if startup.is_file():
+            pythonw = Path(command[0]).with_name('pythonw.exe')
+            os.execve(str(pythonw), [str(pythonw), str(startup), '--toshy-inprocess', *arguments], environment)
     python = Path(command[0])
     if os.name == 'nt' and Path(sys.executable).name.lower() == 'pythonw.exe':
         python = python.with_name('pythonw.exe')
@@ -205,7 +239,13 @@ def main(argv=None):
                 components = [p for p in (args.components or '').split(',') if p]
             if set(components) - {'git', 'docker', 'browser', 'ocr'}:
                 raise ReleaseError('Unknown optional component.')
-            print('Destination:', root, '\nRequired: Python, Toshy, Harrier, pylsp, Harper.\nOptional:', ', '.join(components) or 'none')
+            print('Destination:', root, '\nRequired: Python, Toshy, Harrier, pylsp. Harper is installed when available.\nOptional:', ', '.join(components) or 'none')
+            if os.name == 'nt':
+                from .windows_runtime import missing
+                absent = missing()
+                if absent:
+                    print('Required system component: Microsoft Visual C++ x64 Runtime. Missing: ' + ', '.join(absent), flush=True)
+                    print('Its official setup may request administrator permission.', flush=True)
             if not args.yes and input('Start installation? [y/N] ').strip().lower() != 'y':
                 return 1
             engine.prepare(repository=args.repository, local_source=args.source, components=components, skip_system=args.skip_system)

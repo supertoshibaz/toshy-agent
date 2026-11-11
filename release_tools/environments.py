@@ -108,7 +108,7 @@ def build(engine, program, config, *, components=()):
                 if p.is_file() and not p.is_symlink() and p.name != '.toshy-owned.json'
                 and '__pycache__' not in p.parts and 'downloads' not in p.parts and 'cache' not in p.parts}
             layout.write_json(resources / '.toshy-owned.json', {'product': 'Toshy resources',
-                'fingerprint': fingerprint, 'complete': True, 'lsp': info['lsp'], 'files': hashes})
+                'fingerprint': fingerprint, 'complete': all(info['lsp'].values()), 'lsp': info['lsp'], 'files': hashes})
         info['resources'] = resources.relative_to(root).as_posix()
         engine.verify_runtime(program, environment=venv, data=resources)
         if 'ocr' in components:
@@ -130,7 +130,7 @@ def build(engine, program, config, *, components=()):
         raise
 
 
-def launch(root, state, *, info=None, ready_file=None):
+def launch(root, state, *, info=None, ready_file=None, native_host=False):
     from .engine import python_in
     root = Path(root)
     info = info or state['current']
@@ -150,6 +150,11 @@ def launch(root, state, *, info=None, ready_file=None):
     env['PATH'] = os.pathsep.join([str(python_in(venv).parent), str(root / 'tools'), env.get('PATH', '')])
     if ready_file:
         env['TOSHY_UPDATE_READY_FILE'] = str(ready_file)
+    host = root / 'launcher/Toshy.exe'
+    if os.name == 'nt' and native_host:
+        from .windows_host import available
+        if available(root, python_in(venv)):
+            return [str(host)], env
     return [str(python_in(venv)), str(program / 'run_ui.py')], env
 
 
