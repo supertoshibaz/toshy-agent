@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "light",
+  "name": "Light",
+  "foundation": "light",
+  "colors": {
+    "background.window": "#DAD6CD",
+    "background.panel": "#F3EFE6",
+    "background.surface": "#C6C0B4",
+    "background.input": "#FFFCF5",
+    "text.primary": "#222622",
+    "text.secondary": "#51564E",
+    "text.disabled": "#7D8078",
+    "accent.subtle": "#BBB5A6",
+    "accent.primary": "#444F42",
+    "control.hover": "#D6D0C3",
+    "control.pressed": "#B0AA9C",
+    "control.selected": "#BBB5A6",
+    "control.disabled": "#DAD6CD",
+    "border.subtle": "#A7A293",
+    "border.focus": "#444F42",
+    "icon.normal": "#222622",
+    "icon.active": "#444F42",
+    "icon.disabled": "#7D8078"
+  }
+}

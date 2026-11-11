@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "dark",
+  "name": "Dark",
+  "foundation": "dark",
+  "colors": {
+    "background.window": "#191A1C",
+    "background.panel": "#292B2E",
+    "background.surface": "#323438",
+    "background.input": "#151618",
+    "text.primary": "#E3E4E6",
+    "text.secondary": "#AAADB2",
+    "text.disabled": "#72757B",
+    "accent.subtle": "#41444A",
+    "accent.primary": "#D3D6DC",
+    "control.hover": "#3B3E43",
+    "control.pressed": "#232529",
+    "control.selected": "#41444A",
+    "control.disabled": "#323438",
+    "border.subtle": "#45484E",
+    "border.focus": "#D3D6DC",
+    "icon.normal": "#E3E4E6",
+    "icon.active": "#D3D6DC",
+    "icon.disabled": "#72757B"
+  }
+}

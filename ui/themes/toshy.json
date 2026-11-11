@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "id": "toshy",
+  "name": "Toshy",
+  "foundation": "dark",
+  "colors": {
+    "background.window": "#191C1F",
+    "background.panel": "#292D31",
+    "background.surface": "#30363B",
+    "background.input": "#16191C",
+    "text.primary": "#E2E6E8",
+    "text.secondary": "#A5AFB5",
+    "text.disabled": "#69747B",
+    "accent.subtle": "#204B42",
+    "accent.primary": "#55EBC5",
+    "control.hover": "#24594D",
+    "control.pressed": "#173D35",
+    "control.selected": "#204B42",
+    "control.disabled": "#30363B",
+    "border.subtle": "#3E474D",
+    "border.focus": "#55EBC5",
+    "icon.normal": "#E2E6E8",
+    "icon.active": "#55EBC5",
+    "icon.disabled": "#69747B"
+  }
+}
