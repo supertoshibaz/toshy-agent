@@ -33,11 +33,13 @@ def prepare_application_identity():
             setter = ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID
             setter.argtypes = [ctypes.c_wchar_p]
             setter.restype = ctypes.c_long
-            result = setter(APPLICATION_ID)
+            from release_tools.windows_shell import app_id
+            identity = app_id(os.environ.get('TOSHY_INSTALL_ROOT') or APP_PATHS.code_root)
+            result = setter(identity)
             if result < 0:
                 raise OSError(f"AppUserModelID: HRESULT {result & 0xffffffff:#x}")
         except (OSError, AttributeError) as error:
-            _warn(f"Не удалось задать идентификатор приложения Windows: {error}")
+            _warn(f"Could not set Windows application identity: {error}")
 
 
 def _desktop_string(value):
@@ -110,14 +112,19 @@ def _register_linux_launcher():
 def configure_application_icon(app):
     """All top-level widgets inherit this icon, including secondary windows."""
     if not LOGO_PATH.is_file():
-        _warn(f"Не найден файл иконки приложения: {LOGO_PATH}")
+        _warn(f"Application icon file not found: {LOGO_PATH}")
         return
     if not QSvgRenderer(str(LOGO_PATH)).isValid():
-        _warn(f"Некорректный SVG иконки приложения: {LOGO_PATH}")
+        _warn(f"Invalid application SVG icon: {LOGO_PATH}")
         return
-    app.setWindowIcon(QIcon(str(LOGO_PATH)))
+    icon = LOGO_PATH
+    if sys.platform == 'win32' and os.environ.get('TOSHY_INSTALL_ROOT'):
+        native_icon = Path(os.environ['TOSHY_INSTALL_ROOT']) / 'launcher/toshy-multisize.ico'
+        if native_icon.is_file():
+            icon = native_icon
+    app.setWindowIcon(QIcon(str(icon)))
     if sys.platform.startswith("linux"):
         try:
             _register_linux_launcher()
         except (OSError, ValueError) as error:
-            _warn(f"Не удалось зарегистрировать ярлык Toshy: {error}")
+            _warn(f"Could not register Toshy launcher: {error}")
