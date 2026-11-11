@@ -1,5 +1,8 @@
 Смена языка: Нижняя панель -> Startup -> Поиск по настройкам -> Personalization
 
+# Instant start
+Bottom panel -> Startup -> Startup button -> Below, in the settings "API" -> Create
+
 # Getting started with Toshy Studio
 
 Hi! Here's a quick guide to getting started with this application.
