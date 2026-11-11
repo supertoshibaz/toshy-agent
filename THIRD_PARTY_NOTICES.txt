@@ -1,5 +1,11 @@
 Third-party components retain their original licenses.
 
+Microsoft Visual C++ x64 Runtime is a separate Windows system prerequisite.
+The installer downloads its setup program from Microsoft and verifies its
+Authenticode signature. The runtime is governed by Microsoft's license terms;
+its binaries are not included in Toshy's source distribution. Toshy does not
+remove this shared system runtime during uninstall.
+
 Harrier: microsoft/harrier-oss-v1-270m (MIT), ONNX conversion by ONNX Community.
 Mirror: https://huggingface.co/toshibaz/harrier-oss-v1-270m-toshy
 The mirrored repository declares MIT but currently contains only a copyright
