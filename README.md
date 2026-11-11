@@ -45,6 +45,11 @@ Roadmap
 - Using Toshy without the application, a server version.
 
 ## Installation
+The agent's directory may take up approximately 3 GB of disk space after installation. You will also be prompted to install Docker and Git.
+On Linux, once the files have been downloaded and the dependencies installed, a launcher script will be placed in ~/.local/bin, allowing you to start the agent using the toshy command. Shortcuts pointing to this script will also be created.
+If ~/.local/bin is not included in your PATH, the installer will notify you, and you will need to resolve this manually.
+If you move the agent's directory to another location, the shortcuts will stop working, and you will need to update them manually.
+
 Linux
 ```Linux
 curl -fsSL https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/install.sh | bash
@@ -52,6 +57,11 @@ curl -fsSL https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/inst
 Windows
 ```PowerShell
 iex (irm https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/install.ps1)
+```
+Windows If you downloaded archive manually 
+```PowerShell
+cd *path to toshy*
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
 ## License
