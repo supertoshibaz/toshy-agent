@@ -1,0 +1,135 @@
+{
+  "uv": {
+    "version": "0.13.7",
+    "linux": {
+      "url": "https://github.com/astral-sh/uv/releases/download/0.13.7/uv-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "c5221ff41b7892bfc223543883600125f6a47fe845093e0f5bdff4f359196d83",
+      "size": 16671812
+    },
+    "windows": {
+      "url": "https://github.com/astral-sh/uv/releases/download/0.13.7/uv-x86_64-pc-windows-msvc.zip",
+      "sha256": "0cdc5b38fe5a8168ed6a25814f5ba43c21d313dd3187314fccb37b7cec46e021",
+      "size": 15236317
+    }
+  },
+  "harper": {
+    "version": "v3.1.0",
+    "linux": {
+      "url": "https://github.com/Automattic/harper/releases/download/v3.1.0/harper-ls-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "47469b3b628fa2040797d834a1df84e7288be2d055602a76e92d28a7135f76e2",
+      "size": 14633664
+    },
+    "windows": {
+      "url": "https://github.com/Automattic/harper/releases/download/v3.1.0/harper-ls-x86_64-pc-windows-msvc.zip",
+      "sha256": "0827f6940a1cc150335ea475307dfa0b7c1237a5e5dd24b1a506fab5839addf8",
+      "size": 13689619
+    }
+  },
+  "harrier": {
+    "repository": "toshibaz/harrier-oss-v1-270m-toshy",
+    "revision": "94e3f88655c5d380931d8f23f31736bd44c5d233",
+    "files": {
+      "model_q4.onnx": {
+        "url": "https://huggingface.co/toshibaz/harrier-oss-v1-270m-toshy/resolve/94e3f88655c5d380931d8f23f31736bd44c5d233/model_q4.onnx",
+        "sha256": "228dca2603b907d673dd99cf89c309c0ca68baeed127416a5e027a48e62b0f49",
+        "size": 239762
+      },
+      "model_q4.onnx_data": {
+        "url": "https://huggingface.co/toshibaz/harrier-oss-v1-270m-toshy/resolve/94e3f88655c5d380931d8f23f31736bd44c5d233/model_q4.onnx_data",
+        "sha256": "b5a15487360f5341659480ae4b5ad60028d5f865bd329196ec8d5708bbed3118",
+        "size": 205492736
+      },
+      "tokenizer.json": {
+        "url": "https://huggingface.co/toshibaz/harrier-oss-v1-270m-toshy/resolve/94e3f88655c5d380931d8f23f31736bd44c5d233/tokenizer.json",
+        "sha256": "ec95be298bea26f90370854faa650744c9fb0a04ca5e5ff95dd3913393ac5e45",
+        "size": 20323311
+      }
+    }
+  },
+  "notices": {
+    "uv": {
+      "url": "https://raw.githubusercontent.com/astral-sh/uv/0.13.7/LICENSE-MIT",
+      "sha256": "860e3d7a86b84e6a7012c7a635fc64df475cebc6cce34dfeb73a5982ec58176c",
+      "size": 1077
+    },
+    "harper": {
+      "url": "https://raw.githubusercontent.com/Automattic/harper/v3.1.0/LICENSE",
+      "sha256": "fbc8f1bffe04ab962340fabb1324d57d8b875070f67759d606516144ee53ac19",
+      "size": 11345
+    }
+  },
+  "tesseract_data": {
+    "revision": "87416418657359cb625c412a48b6e1d6d41c29bd",
+    "files": {
+      "eng.traineddata": {
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/eng.traineddata",
+        "size": 4113088,
+        "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+      },
+      "rus.traineddata": {
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/rus.traineddata",
+        "size": 3861738,
+        "sha256": "e16e5e036cce1d9ec2b00063cf8b54472625b9e14d893a169e2b0dedeb4df225"
+      },
+      "LICENSE": {
+        "url": "https://raw.githubusercontent.com/tesseract-ocr/tessdata_fast/87416418657359cb625c412a48b6e1d6d41c29bd/LICENSE",
+        "size": 11358,
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    }
+  },
+  "ocr": {
+    "version": "2.12.0",
+    "wheels": {
+      "linux-cp312": {
+        "url": "https://files.pythonhosted.org/packages/05/5c/57b3deee8f1ae0691ba73efffe7f842fbfb7f0b4635252c8e12bdda78f77/tesserocr-2.12.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "03bbae4e8fb8e1083eb05cabdcf191ee1837e0f881c5824ad1912966e7f549c1",
+        "size": 5587349,
+        "filename": "tesserocr-2.12.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+      },
+      "windows-cp312": {
+        "url": "https://files.pythonhosted.org/packages/c4/71/fe51d176518e09b89524b964a294f27f6f48885f02a4d579b7f0a9d0a2f2/tesserocr-2.12.0-cp312-cp312-win_amd64.whl",
+        "sha256": "e23b800d6030cf9d208dc01c59ace50a89c7a5e06ad2dc9c1634ed18ff1932ec",
+        "size": 23142989,
+        "filename": "tesserocr-2.12.0-cp312-cp312-win_amd64.whl"
+      },
+      "linux-cp313": {
+        "url": "https://files.pythonhosted.org/packages/de/3f/79f9ff25a636ec47019ed2072d56ef977c5c0bf613c29f4555745ef2f31c/tesserocr-2.12.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "76778cf6468c8cac5a0ff4207e960ab4800e3a7e4e9f567969e1b6b0ad0d71c4",
+        "size": 5593799,
+        "filename": "tesserocr-2.12.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+      },
+      "windows-cp313": {
+        "url": "https://files.pythonhosted.org/packages/10/0c/393b6a506c91963226a14173f9ef17a52be9287ad2e16da08fd9a3e3c71a/tesserocr-2.12.0-cp313-cp313-win_amd64.whl",
+        "sha256": "7ee14f90a09ad75f78010e12e45770ad16569c6d17d5f175f1a948d9cf67976e",
+        "size": 23142504,
+        "filename": "tesserocr-2.12.0-cp313-cp313-win_amd64.whl"
+      },
+      "linux-cp314": {
+        "url": "https://files.pythonhosted.org/packages/a4/89/ad9fbce1a588630e32659023f7ee1d326a5e7c32ffa20f38e2523e208228/tesserocr-2.12.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "sha256": "3d3dffeb30ca50322755af76bee98e37ed6c06a49568d3bc29f68a10cd8f70e1",
+        "size": 5586049,
+        "filename": "tesserocr-2.12.0-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl"
+      },
+      "windows-cp314": {
+        "url": "https://files.pythonhosted.org/packages/03/6e/3b8ae20b1688faf39723a286b0934bc1cf1ccab195c777e0ad197209ba13/tesserocr-2.12.0-cp314-cp314-win_amd64.whl",
+        "sha256": "f4f38bb89c01f053171aec04030d1c04b3dc583d5d045477fc465fcd4affa55e",
+        "size": 24049965,
+        "filename": "tesserocr-2.12.0-cp314-cp314-win_amd64.whl"
+      }
+    }
+  },
+  "browser": {
+    "version": "157.0.8103.50",
+    "linux": {
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8103.50/linux64/chrome-headless-shell-linux64.zip",
+      "sha256": "7bf0d41e424efd1d6281c4162993ab9dc5de92fac213c211614905a71c057d0f",
+      "size": 128166087
+    },
+    "windows": {
+      "url": "https://storage.googleapis.com/chrome-for-testing-public/157.0.8103.50/win64/chrome-headless-shell-win64.zip",
+      "sha256": "9e59432baf484387bdc9cc4a8efca499fb558aeda93e536eb8b859a065ddb884",
+      "size": 126512350
+    }
+  }
+}

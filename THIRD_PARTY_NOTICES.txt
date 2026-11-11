@@ -1,0 +1,85 @@
+Third-party components retain their original licenses.
+
+Harrier: microsoft/harrier-oss-v1-270m (MIT), ONNX conversion by ONNX Community.
+Mirror: https://huggingface.co/toshibaz/harrier-oss-v1-270m-toshy
+The mirrored repository declares MIT but currently contains only a copyright
+line in LICENSE. release_tools/HARRIER_LICENSE.txt reproduces the standard MIT
+text; it is not presented as an upstream license file.
+
+Tabler Icons (MIT): preserve the existing icon license files.
+PySide6 / Qt: distributed under their upstream LGPL/GPL/commercial terms,
+not relicensed by Toshy's Apache-2.0 license. Python dependency distributions
+retain their bundled notices and licenses in the installed environment.
+uv: MIT OR Apache-2.0. Harper: Apache-2.0. Downloaded tools retain their notices.
+Git and Docker are installed separately through the system package manager
+and retain their upstream licenses. Optional Chrome Headless Shell (Chromium)
+is downloaded from official Chrome for Testing distributions into
+elements/browsers. Its bundled LICENSE.headless_shell and other notices are
+retained with the private distribution.
+
+Document readers: pypdf (BSD-3-Clause), pypdfium2 (Apache-2.0/BSD-3-Clause,
+including PDFium's bundled third-party notices), Pillow (its upstream PIL/Pillow license), openpyxl (MIT),
+defusedxml (PSF), striprtf (BSD-3-Clause), python-docx (MIT), Beautiful Soup (MIT).
+python-calamine is MIT-licensed. Installed Python distributions retain their
+license files. Optional tesserocr wheels (MIT) bundle Tesseract (Apache-2.0),
+Leptonica (BSD-2-Clause) and upstream runtime libraries; wheel license notices
+are retained inside elements/ocr/runtime. Tesseract tessdata_fast English
+and Russian language data are Apache-2.0, pinned in release_tools/resources.json.
+
+LangGraph, LangGraph Checkpoint, LangGraph Prebuilt and LangGraph SDK (MIT)
+Source: https://github.com/langchain-ai/langgraph
+The following license text is reproduced from the installed distributions.
+
+MIT License
+
+Copyright (c) 2024 LangChain, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+LangChain Core (MIT)
+Source: https://github.com/langchain-ai/langchain/tree/master/libs/core
+The following license text is reproduced from the installed distribution.
+
+MIT License
+
+Copyright (c) LangChain, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Installer system TLS verifier: truststore 0.10.5 (MIT).
+Unmodified Python sources are included in release_tools/vendor/truststore.
+Source: https://github.com/sethmlarson/truststore
+Original MIT license: release_tools/vendor/truststore/LICENSE.
+This component uses operating-system certificate stores and includes no CA bundle.

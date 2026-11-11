@@ -1,0 +1,6 @@
+Unmodified truststore 0.10.5 Python sources (MIT).
+Source: https://github.com/sethmlarson/truststore
+Distribution: https://files.pythonhosted.org/packages/51/e9/3a7820be2bb0fe53b6bc9c3be26d3d1158004e4c3ab953aa6840b955b1e9/truststore-0.10.5-py3-none-any.whl
+Wheel SHA-256: 9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c
+Vendored to support HTTPS before application dependencies are installed.
+No CA certificates are included in this package.

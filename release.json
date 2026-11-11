@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "version": "1.0.0",
+  "repository": "supertoshibaz/toshy-agent",
+  "plugin_catalog": "https://github.com/supertoshibaz/toshy-agent-plugins-community",
+  "python": "3.13.17",
+  "data_schema": 1,
+  "minimum_updater": 1,
+  "platforms": [
+    "linux-x86_64",
+    "windows-x86_64"
+  ],
+  "update_protocol": 2,
+  "required_components": [
+    "python",
+    "harrier",
+    "pylsp",
+    "harper"
+  ]
+}

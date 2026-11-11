@@ -1,0 +1,19 @@
+{
+  "llm": {
+    "api_url": "http://localhost:8080/v1",
+    "model_name": "local-agent-core"
+  },
+  "embedding": {
+    "provider": "builtin"
+  },
+  "workspace_root": "./workspace",
+  "system_modules": [
+    "web_search",
+    "file_manager",
+    "terminal_sandbox",
+    "subagent_manager",
+    "mcp_client",
+    "task_manager"
+  ],
+  "custom_modules": []
+}
