@@ -53,7 +53,6 @@ iex (irm https://raw.githubusercontent.com/supertoshibaz/toshy-agent/main/instal
 ```
 Windows если скачали архив вручную
 ```PowerShell
-cd *путь к папке toshy*
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
