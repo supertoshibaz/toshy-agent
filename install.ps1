@@ -8,8 +8,8 @@ param(
     [switch]$SkipSystem
 )
 # A child scope keeps helper functions and error preferences out of the shell
-# when this file is evaluated with iex (irm ...). {}.File is empty under iex,
-# even if the caller itself is another .ps1 file.
+# when this file is evaluated with iex (irm ...). In this mode,
+# PSCommandPath may be empty and PSBoundParameters may be null.
 & {
     param([hashtable]$Bootstrap)
     $ErrorActionPreference = 'Stop'
@@ -30,7 +30,7 @@ param(
     if ($Root -eq [IO.Path]::GetPathRoot($Root) -or $Root -eq $HOME) { throw 'Choose a private installation directory.' }
     if (Test-Path -LiteralPath $Root) {
         if ((Get-Item -LiteralPath $Root).Attributes -band [IO.FileAttributes]::ReparsePoint) { throw 'Installation directory cannot be a link.' }
-        if (-not (Test-Path -LiteralPath (Join-Path $Root 'installation.json')) -and (Get-ChildItem -Force -LiteralPath $Root | Measure-Object).Count -gt 0 -and -not ((Test-Path -LiteralPath (Join-Path $Root '.toshy-bootstrap')) -and (Get-Content -Raw -LiteralPath (Join-Path $Root '.toshy-bootstrap')).Trim() -eq $Root) -and -not ((Test-Path -LiteralPath (Join-Path $Root 'run_ui.py')) -and (Test-Path -LiteralPath (Join-Path $Root 'release-manifest.json')) -and (Test-Path -LiteralPath (Join-Path $Root 'release_tools\cli.py')))) { throw 'Choose an empty directory or the unpacked Toshy folder.' }
+        if (-not (Test-Path -LiteralPath (Join-Path $Root 'installation.json')) -and (Get-ChildItem -Force -LiteralPath $Root | Measure-Object).Count -gt 0 -and -not ((Test-Path -LiteralPath (Join-Path $Root '.toshy-bootstrap')) -and ([string](Get-Content -Raw -LiteralPath (Join-Path $Root '.toshy-bootstrap'))).Trim() -eq $Root) -and -not ((Test-Path -LiteralPath (Join-Path $Root 'run_ui.py')) -and (Test-Path -LiteralPath (Join-Path $Root 'release-manifest.json')) -and (Test-Path -LiteralPath (Join-Path $Root 'release_tools\cli.py')))) { throw 'Choose an empty directory or the unpacked Toshy folder.' }
     }
     $Temporary = Join-Path ([IO.Path]::GetTempPath()) ('toshy-bootstrap-' + [Guid]::NewGuid())
     $PreviousEnvironment = @{}
@@ -216,9 +216,9 @@ if not (destination/'install.py').is_file() or not (destination/'release_tools/c
     Root = $Root
     Repository = $Repository
     Components = $Components
-    HasComponents = $PSBoundParameters.ContainsKey('Components')
+    HasComponents = [bool]($null -ne $PSBoundParameters -and $PSBoundParameters.ContainsKey('Components'))
     Yes = $Yes.IsPresent
     NoDesktop = $NoDesktop.IsPresent
     SkipSystem = $SkipSystem.IsPresent
-    ScriptFile = [string]{ $null }.File
+    ScriptFile = [string]$PSCommandPath
 }
