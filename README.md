@@ -12,6 +12,8 @@ English · [Русский](README_ru.md)
 Toshy is a modular, graph-based AI agent written in Python. Along with the agent itself comes Toshy Studio, a desktop application that allows you to easily build complex AI pipelines, work on projects from start to finish within a single application, and use any local or cloud AI models.
 Currently, the studio's functionality is focused on coding, working with text, research, planning, and everyday tasks.
 
+![Toshy Agent Studio](t-ui.png)
+
 ## What Makes It Special?
 
 ### Modularity
