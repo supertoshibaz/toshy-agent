@@ -523,7 +523,7 @@
     "ui/panels/file_manager_panel.py": "61dd5e0fdaa089cf0124887f53821dabc874e2d36116726455f8aea15f44d353",
     "ui/panels/materials_panel.py": "c42a0b7f9185238a6372cf82ea64a908c5dd8ad6cdaf56ce48cb7f6fc7d34354",
     "ui/panels/mcp_panel.py": "affd4470a7f8e47cf704cf8fca3ea4fea35201c71e615d74db2e4381739c6d12",
-    "ui/panels/onboarding_panel.py": "f2ca0baa6dabc4c46b92cc2cff8de78826bba1d43ac28e4796165d11b0507ef6",
+    "ui/panels/onboarding_panel.py": "daa3b31fd048366bf6dc2651add2cca6d4a3acfa64e25d315374d75e7d2fbed1",
     "ui/panels/sessions_panel.py": "cf3c996247664243de3d26c3689062885a609602e3e281a035ad319c104a29e8",
     "ui/panels/subagents_panel.py": "d0c9ce4cb7db97f4a245148133ec526ff2a8813aa9781be236cd1a2fa12f9bd3",
     "ui/panels/tasks_panel.py": "5ac89d564ada448a51c5b05f2605ba667f1110d93772f00525fcc5ef959b87c8",

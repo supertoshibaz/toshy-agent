@@ -10,7 +10,7 @@ from pathlib import Path
 from PySide6.QtCore import Qt, QRectF, QTimer, Signal, QEvent
 from PySide6.QtGui import QColor, QPainter, QPainterPath, QPalette, QTextCursor, QBrush, QTextCharFormat
 from PySide6.QtWidgets import (
-    QFrame, QHBoxLayout, QLabel, QTextBrowser, QToolButton, QVBoxLayout, QWidget,
+    QFrame, QHBoxLayout, QLabel, QSizePolicy, QTextBrowser, QToolButton, QVBoxLayout, QWidget,
 )
 
 from ui.dock_system.dock_panel import DockPanel
@@ -83,6 +83,9 @@ class OnboardingContent(QWidget):
         self.markdown.setObjectName('OnboardingMarkdown')
         self.markdown.setFrameShape(QFrame.NoFrame)
         self.markdown.document().setDocumentMargin(0)
+        # QTextDocument uses its own per-level list indent (40 px by default).
+        # Keep both regular and nested Markdown lists compact in narrow docks.
+        self.markdown.document().setIndentWidth(16)
         self.markdown.setOpenLinks(False)
         self.markdown.setOpenExternalLinks(False)
         self.markdown.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
@@ -131,14 +134,15 @@ class OnboardingContent(QWidget):
         button = QToolButton(self.navigation)
         button.setObjectName('OnboardingNavButton')
         apply_style(button, 'QToolButton#OnboardingNavButton {'
-                    'border-radius:0; padding:0; margin:0;'
+                    'border-radius:5px; padding:0; margin:0;'
                     'background:@background.surface@; color:@text.primary@;'
                     'border:1px solid @border.subtle@;}'
                     'QToolButton#OnboardingNavButton:hover {'
                     'background:@control.hover@;}'
                     'QToolButton#OnboardingNavButton:disabled {'
                     'color:@text.disabled@;}')
-        set_icon(button, icon, size=16, square=True)
+        set_icon(button, icon, size=16)
+        button.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         button.setFixedSize(28, 28)
         button.setCursor(Qt.PointingHandCursor)
         set_text(button, tooltip_key, setter='setToolTip')
@@ -162,7 +166,7 @@ class OnboardingContent(QWidget):
             'h1 {font-size:18px; margin:0 0 5px 0;}'
             'h2 {font-size:16px; margin:4px 0;}'
             'p {margin:0 0 4px 0;}'
-            'ul, ol {margin:3px 0; padding-left:16px;}'
+            'ul, ol {margin:2px 0; padding:0;}'
             'li {margin:0; padding:0;}'
         )
         self._render_markdown()
@@ -171,6 +175,7 @@ class OnboardingContent(QWidget):
         position = self.markdown.verticalScrollBar().value()
         page_id = PAGE_IDS[self.page_index] if PAGE_IDS else '01'
         self.markdown.setMarkdown(load_page(page_id))
+        self.markdown.document().setIndentWidth(16)
         # Qt Markdown can retain its own block margins despite the default CSS.
         # Normalize them without touching the list/anchor character formats.
         block = self.markdown.document().begin()
@@ -211,10 +216,10 @@ class OnboardingContent(QWidget):
         last = self.page_index == len(PAGE_IDS) - 1
         self.back.setEnabled(self.page_index > 0)
         self.close_early.setVisible(not last)
-        set_icon(self.close_early, 'close', size=16, square=True)
+        set_icon(self.close_early, 'close', size=16)
         set_text(self.close_early, 'onboarding.finish', setter='setToolTip')
         set_text(self.close_early, 'onboarding.finish', setter='setAccessibleName')
-        set_icon(self.forward, 'close' if last else 'right', size=16, square=True)
+        set_icon(self.forward, 'close' if last else 'right', size=16)
         set_text(self.forward, 'onboarding.finish' if last else 'onboarding.next', setter='setToolTip')
         set_text(self.forward, 'onboarding.finish' if last else 'onboarding.next', setter='setAccessibleName')
         self.markdown.verticalScrollBar().setValue(0)
@@ -256,7 +261,7 @@ class OnboardingContent(QWidget):
             return
         self._closing_started = time.monotonic()
         active = self.forward if self.page_index == len(PAGE_IDS) - 1 else self.close_early
-        set_icon(active, 'stop', size=16, square=True)
+        set_icon(active, 'stop', size=16)
         set_text(active, 'onboarding.cancel', setter='setToolTip')
         set_text(active, 'onboarding.cancel', setter='setAccessibleName')
         self.back.setEnabled(False)
