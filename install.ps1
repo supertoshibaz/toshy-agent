@@ -23,8 +23,12 @@ param(
         }
     }
     $Repository = $Bootstrap.Repository
-    $OSArchitecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
-    if ($OSArchitecture -ne 'X64') { throw "Supported: Windows x64. Detected: $OSArchitecture." }
+    # Windows PowerShell 5.1 may expose RuntimeInformation without a usable
+    # OSArchitecture property. Use the Windows architecture variables instead;
+    # PROCESSOR_ARCHITEW6432 also identifies x64 Windows from a 32-bit shell.
+    [string]$OSArchitecture = $env:PROCESSOR_ARCHITEW6432
+    if (-not $OSArchitecture) { $OSArchitecture = [string]$env:PROCESSOR_ARCHITECTURE }
+    if ($OSArchitecture -notin @('AMD64', 'X64')) { throw "Supported: Windows x64. Detected: $OSArchitecture." }
     if ($Repository -notmatch '^[A-Za-z0-9_-][A-Za-z0-9_.-]*/[A-Za-z0-9_-][A-Za-z0-9_.-]*$') { throw 'Use -Repository OWNER/REPOSITORY.' }
     $Root = [IO.Path]::GetFullPath($Root)
     if ($Root -eq [IO.Path]::GetPathRoot($Root) -or $Root -eq $HOME) { throw 'Choose a private installation directory.' }
@@ -216,9 +220,9 @@ if not (destination/'install.py').is_file() or not (destination/'release_tools/c
     Root = $Root
     Repository = $Repository
     Components = $Components
-    HasComponents = [bool]($null -ne $PSBoundParameters -and $PSBoundParameters.ContainsKey('Components'))
-    Yes = $Yes.IsPresent
-    NoDesktop = $NoDesktop.IsPresent
-    SkipSystem = $SkipSystem.IsPresent
+    HasComponents = [bool]('Components' -in @($PSBoundParameters.Keys))
+    Yes = [bool]$Yes
+    NoDesktop = [bool]$NoDesktop
+    SkipSystem = [bool]$SkipSystem
     ScriptFile = [string]$PSCommandPath
 }

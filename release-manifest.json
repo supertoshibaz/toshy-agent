@@ -105,7 +105,7 @@
     "elements/lsp/lsp_client.py": "41dc225986546bc8b70c9b58a6dbb5192c0d9dfda322c031a6b67a8ceb262298",
     "elements/lsp/lsp_defaults.json": "485c0d34a61da9fbd7e413af7f394e4f1a6d91051e96b194e690af9e5e6986cc",
     "elements/lsp/lsp_manager.py": "e0a8bca80f4d7de5b291d15e2c6ad69595efc933ca875f734840b060cf4935b3",
-    "install.ps1": "e1382f6b25745fc645088ac82dac64ff25487d28a5f754d694728fe87fa669c2",
+    "install.ps1": "9953251f4e625a26920eb486de62160cdf18320900dcae2c0c7840e959565dfc",
     "install.py": "2459a9181642ebd855349db33acebb5fe20d98d51af132e04d07a51c4bf3bdaf",
     "install.sh": "3dad6f71f7bfd4297d1d55442d70c5649bf6cd37896b08ac6493e60891400e73",
     "modules/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
