@@ -23,7 +23,8 @@ param(
         }
     }
     $Repository = $Bootstrap.Repository
-    if ([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture -ne 'X64') { throw 'Supported: Windows x64.' }
+    $OSArchitecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+    if ($OSArchitecture -ne 'X64') { throw "Supported: Windows x64. Detected: $OSArchitecture." }
     if ($Repository -notmatch '^[A-Za-z0-9_-][A-Za-z0-9_.-]*/[A-Za-z0-9_-][A-Za-z0-9_.-]*$') { throw 'Use -Repository OWNER/REPOSITORY.' }
     $Root = [IO.Path]::GetFullPath($Root)
     if ($Root -eq [IO.Path]::GetPathRoot($Root) -or $Root -eq $HOME) { throw 'Choose a private installation directory.' }
