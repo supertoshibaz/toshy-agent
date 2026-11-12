@@ -18,8 +18,8 @@
     "ocr"
   ],
   "locks": {
-    "linux-x86_64.txt": "abce17a661f7ea343e7bc0d7bbedfd3bff2929afef6122a92a52e0b02b8e3e3c",
-    "windows-x86_64.txt": "443ddda107ba20485d4bd5593a7c3dc95f60d982d870a3bdb351f771eaee9eff",
+    "linux-x86_64.txt": "892a4505a87e18de3e9d1c97f5ce49b2266d9e7cea96b2ed55896b64fbc3086f",
+    "windows-x86_64.txt": "2d866b9f3b9415ac42d5fdc7bbab043be260a01735e1e6618ba050cd506193ec",
     "pylsp-linux-x86_64.txt": "9d7578d3761befb60e11c2f99b639f83356afe5e99056ddd770af5e2c10e7990",
     "pylsp-windows-x86_64.txt": "1cc142f2bfc4c25383c1a05a24e82b000590f445c2dee755df17a21df1b35f40"
   },

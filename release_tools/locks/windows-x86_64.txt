@@ -565,9 +565,9 @@ langchain-protocol==0.0.21 \
     # via
     #   langchain-core
     #   langgraph-sdk
-langgraph==1.2.20 \
-    --hash=sha256:2b9fd01c3d5e0652e6c9b436dc0341413788010eb279ac8c46a733cf485d848b \
-    --hash=sha256:79f86df92f2dd17d5ec464cab68dbb685439ab102ca39f0b1b7b198025a2414c
+langgraph==1.2.21 \
+    --hash=sha256:382b657eaf3cd568245de4bf264db94d514e2a6d0916046b3125a228aee1c307 \
+    --hash=sha256:e3e8ed606cbf577ee394d0e4bba0ba723de18c2ecd2f51529fc2ef4051fbca93
     # via -r requirements.txt
 langgraph-checkpoint==4.3.1 \
     --hash=sha256:215a826935c8db4d9676e79fd95943e5b3847d78604390898e1d98581cc594e5 \
