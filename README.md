@@ -38,6 +38,10 @@ Branches, replies, quotes, pinned messages, forwarding, search, requests during 
 ## Project Status
 Toshy is in active development. Some features may still be a bit rough, but I'm working on it. You would greatly support me by joining my Discord community or even donating to me on Boosty.
 
+I'm working on this project alone, so there may be some features or scenarios that I haven't fully tested, especially as things change during development. If you run into any issues — bugs, usability problems, or anything else — please let me know here or in Discord community.
+
+I'm also building this project as my own tool and platform for personal development, so I intend to keep improving and maintaining it for a long time — as long as the ideas and architecture behind it remain effective and relevant.
+
 Roadmap
 - More settings.
 - Improvements to the module creation workspace.
