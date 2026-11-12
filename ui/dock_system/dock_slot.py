@@ -5,7 +5,9 @@ from ui.icons import symbol_button
 from PySide6.QtWidgets import QTabWidget, QToolButton, QTabBar, QApplication, QWidget
 from PySide6.QtCore import Qt, QPoint, Signal, QRect, QEvent, QSize
 from ui.qt_deferred import defer
-from PySide6.QtGui import QMouseEvent
+from PySide6.QtGui import QMouseEvent, QPainter, QColor, QPen
+from ui.themes.manager import theme_manager
+from ui.themes.onboarding_theme import onboarding_colors
 
 from .dock_panel import DockPanel
 from .dock_position_popup import DockPositionPopup
@@ -27,6 +29,33 @@ class DockTabBar(QTabBar):
         self._drag_start_pos = QPoint()
         self._drag_tab_idx = -1
         self.setMovable(False)  # Перемещением полностью управляет живой движок DockManager
+        theme_manager.theme_changed.connect(self._theme_changed)
+
+    def _theme_changed(self, *_):
+        self.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        # QSS has no per-index tab fill. Draw only the onboarding tab on top
+        # of the standard, fully theme-controlled dock tabs.
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        colors = onboarding_colors()
+        for index in range(self.count()):
+            if self.tabData(index) != "onboarding":
+                continue
+            rect = self.tabRect(index).adjusted(0, 0, -2, -1)
+            if not rect.isValid() or not rect.intersects(event.rect()):
+                continue
+            painter.save()
+            painter.setClipRect(rect)
+            painter.setBrush(QColor(colors["tab"]))
+            painter.setPen(QPen(QColor(colors["outline"]), 1.2))
+            painter.drawRoundedRect(rect.adjusted(1, 1, -1, 0), 4, 4)
+            painter.setPen(QColor(colors["tab_text"]))
+            painter.drawText(rect.adjusted(8, 0, -8, 0), Qt.AlignCenter | Qt.TextSingleLine, self.tabText(index))
+            painter.restore()
+        painter.end()
 
     def mousePressEvent(self, event: QMouseEvent):
         if event.button() == Qt.LeftButton:
@@ -134,6 +163,8 @@ class DockSlot(QTabWidget):
             idx = self.insertTab(index, panel, panel.get_title())
         else:
             idx = add_caption_tab(self, panel, panel.get_title())
+        if panel.panel_id == "onboarding_panel":
+            self.tabBar().setTabData(idx, "onboarding")
         self.setCurrentIndex(idx)
         self._update_visibility()
 

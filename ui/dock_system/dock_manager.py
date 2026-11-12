@@ -69,10 +69,28 @@ class DockManager(QObject):
         self.right_splitter.addWidget(self.slots[DockSlotPosition.RIGHT_TOP])
         self.right_splitter.addWidget(self.slots[DockSlotPosition.RIGHT_BOTTOM])
 
-    def register_panel(self, panel: DockPanel, initial_pos: DockSlotPosition):
+    def register_panel(self, panel: DockPanel, initial_pos: DockSlotPosition, *, index: int = -1):
         self.panels[panel.panel_id] = panel
         panel.request_move.connect(self.move_panel)
-        self.slots[initial_pos].add_dock_panel(panel)
+        self.slots[initial_pos].add_dock_panel(panel, index=index)
+        self._adjust_splitters()
+
+    def unregister_panel(self, panel_id: str):
+        """Remove a dynamically created dock and release its Qt widget."""
+        panel = self.panels.get(panel_id)
+        if panel is None:
+            return
+        if self._active_drag_panel is panel:
+            self._finish_live_drag()
+        self.panels.pop(panel_id, None)
+        self.slots[panel.current_position].remove_dock_panel(panel)
+        try:
+            panel.request_move.disconnect(self.move_panel)
+        except (RuntimeError, TypeError):
+            pass
+        panel.hide()
+        panel.setParent(None)
+        panel.deleteLater()
         self._adjust_splitters()
 
     def move_panel(self, panel_id: str, target_pos: DockSlotPosition, target_index: int = -1):

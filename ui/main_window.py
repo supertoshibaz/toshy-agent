@@ -199,6 +199,9 @@ class MainWindow(QMainWindow):
         self._startup_tracker = startup_tracker
         self._close_review = None
         self._plugins_panel = None
+        self._onboarding_panel = None
+        self._onboarding_spotlight = None
+        self._onboarding_highlight_serial = 0
         self._close_approved = False
         self.state_manager = StateManager()
         self._first_launch = not self.state_manager.state_path.exists()
@@ -378,7 +381,7 @@ class MainWindow(QMainWindow):
         self.top_bar.view_tab_clicked.connect(self._on_view_tab_clicked)
         self.top_bar.about_action.triggered.connect(lambda: self._open_builtin_doc("about.md"))
         self.top_bar.help_action.triggered.connect(lambda: self._open_builtin_doc("help.md"))
-        self.top_bar.onboarding_action.triggered.connect(lambda: self._open_builtin_doc("onboarding.md"))
+        self.top_bar.onboarding_action.triggered.connect(self._open_onboarding)
         event_bus.module_workspace_requested.connect(self.bottom_panel.reveal_module)
         self.top_bar.plugins_action.triggered.connect(self._open_plugins)
         self.top_bar.update_action.triggered.connect(self._open_updates)
@@ -419,13 +422,16 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self._show_initial_workspace)
 
     def _show_initial_workspace(self):
-        if not self._first_launch:
+        if self._first_launch:
+            # Keep the other introductory Markdown tabs open in Files.  The
+            # onboarding document itself has been replaced by a dock widget.
+            for filename in ("help.md", "about.md", "pipelienes_help.md"):
+                self._open_builtin_doc(filename)
+            self._on_view_changed(CentralWorkspaceContainer.CHAT_VIEW_INDEX)
+            self.top_bar.set_active_tab(CentralWorkspaceContainer.CHAT_VIEW_INDEX)
             self.bottom_panel.reveal_startup()
-            return
-        for filename in ("help.md", "about.md", "pipelienes_help.md", "onboarding.md"):
-            self._open_builtin_doc(filename)
-        self.bottom_panel.collapse_panel()
-        self.state_manager.save_state({"onboarding_seen": True})
+        if not self.state_manager.get('onboarding_guide_v2_completed', False):
+            self._open_onboarding()
 
     def _save_appearance(self, *_):
         from ui.themes.manager import theme_manager
@@ -660,6 +666,191 @@ class MainWindow(QMainWindow):
         self.top_bar.set_active_tab(CentralWorkspaceContainer.FILE_VIEW_INDEX)
         return True
 
+    def _create_onboarding_panel(self, *, initial_page=0):
+        from ui.panels.onboarding_panel import OnboardingPanel
+        panel = OnboardingPanel(initial_page=initial_page, parent=self)
+        panel.page_changed.connect(self._on_onboarding_page_changed)
+        panel.completion_requested.connect(self._complete_onboarding)
+        panel.action_requested.connect(self._on_onboarding_action)
+        self._onboarding_panel = panel
+        return panel
+
+    def _open_onboarding(self):
+        """Open the onboarding tab without changing its saved completion state."""
+        panel = self._onboarding_panel
+        if panel is None:
+            page = (self.state_manager.get('onboarding_guide_v2_page_index', 0)
+                    if not self.state_manager.get('onboarding_guide_v2_completed', False) else 0)
+            panel = self._create_onboarding_panel(initial_page=page)
+            self.dock_manager.register_panel(panel, DockSlotPosition.RIGHT_BOTTOM, index=0)
+        slot = self.dock_manager.slots[panel.current_position]
+        slot.setCurrentWidget(panel)
+        side = 'left' if panel.current_position.value.startswith('left') else 'right'
+        if getattr(self, side + '_collapsed', False):
+            self._on_toggle_panel(side)
+
+    def _on_onboarding_page_changed(self, page):
+        self._onboarding_highlight_serial += 1
+        if self._onboarding_spotlight is not None:
+            self._onboarding_spotlight.dismiss()
+        if not self.state_manager.get('onboarding_guide_v2_completed', False):
+            self.state_manager.save_state({'onboarding_guide_v2_page_index': int(page)})
+
+    def _complete_onboarding(self):
+        # Called only after the cancellable three-second fill completed.
+        self._onboarding_highlight_serial += 1
+        self.state_manager.save_state({
+            'onboarding_guide_v2_completed': True,
+            'onboarding_guide_v2_page_index': 0,
+        })
+        self.dock_manager.unregister_panel('onboarding_panel')
+        self._onboarding_panel = None
+        if self._onboarding_spotlight is not None:
+            self._onboarding_spotlight.clear()
+
+    def _onboarding_highlight(self, targets):
+        """Highlight exact live Qt control rectangles for five seconds."""
+        if self._onboarding_panel is None:
+            return
+        from ui.components.onboarding_highlight import OnboardingHighlight
+        from ui.components.onboarding_highlight import SpotlightTarget
+        if self._onboarding_spotlight is None:
+            self._onboarding_spotlight = OnboardingHighlight(self.centralWidget())
+            self.top_bar.view_tab_changed.connect(self._onboarding_spotlight.dismiss)
+            self.top_bar.view_tab_clicked.connect(self._onboarding_spotlight.dismiss)
+            self.bottom_panel.header.tabs.currentChanged.connect(self._onboarding_spotlight.dismiss)
+            self.bottom_panel.header.tabs.tabBarClicked.connect(self._onboarding_spotlight.dismiss)
+            self.bottom_panel.startup_view.settings_panel.stack.currentChanged.connect(
+                self._onboarding_spotlight.dismiss)
+            for slot in self.dock_manager.slots.values():
+                slot.currentChanged.connect(self._onboarding_spotlight.dismiss)
+        # Wait for geometry and scroll positioning after switching workspaces.
+        resolved = []
+        for widget, tab, shape in targets:
+            if widget is not None:
+                resolved.append(SpotlightTarget(widget, tab=tab, shape=shape))
+        self._onboarding_spotlight.present(resolved)
+
+    def _onboarding_dock_target(self, panel_id):
+        panel = self.dock_manager.panels.get(panel_id)
+        if panel is None:
+            return []
+        side = 'left' if panel.current_position.value.startswith('left') else 'right'
+        if getattr(self, side + '_collapsed', False):
+            self._on_toggle_panel(side)
+        slot = self.dock_manager.slots[panel.current_position]
+        index = slot.indexOf(panel)
+        return [(slot.tabBar(), index, 'rect')] if index >= 0 else []
+
+    def _onboarding_show_top_workspace(self, index):
+        self._on_view_changed(index)
+        self.top_bar.set_active_tab(index)
+
+    def _onboarding_show_bottom_workspace(self, index):
+        if index == 0:
+            self.bottom_panel.reveal_startup()
+        elif index == 3:
+            self.bottom_panel.reveal_module()
+        else:
+            self.bottom_panel.header.tabs.setCurrentIndex(index)
+            self.bottom_panel._on_tab_clicked(index)
+            # The lower workspaces must be visible even if their tab was selected
+            # before the lower panel was collapsed.
+            if self.bottom_panel.height() <= HEADER_HEIGHT + 5:
+                parent = self.bottom_panel.parentWidget()
+                if parent:
+                    self.bottom_panel.current_panel_height = parent.height()
+                    self.bottom_panel.is_full_height = True
+                    self.bottom_panel.content_area.show()
+                    self.bottom_panel.update_layout_geometry(parent.width(), parent.height())
+
+    def _on_onboarding_action(self, action):
+        """Allowlisted navigation and spotlights for localized Markdown links.
+
+        This only interacts with existing UI controls. No file URLs, network
+        requests, agent actions, or synthetic button clicks are issued.
+        """
+        top_tabs = self.top_bar.view_tabs
+        bottom_tabs = self.bottom_panel.header.tabs
+        targets = []
+        startup = self.bottom_panel.startup_view
+        chat = self.chat_view
+        settings = startup.settings_panel
+
+        if action == 'api-create':
+            self.bottom_panel.open_startup_settings('api')
+            page = settings._pages.get('api')
+            button = getattr(page, 'create_button', None)
+            if button is not None:
+                QTimer.singleShot(30, page, lambda page=page, button=button:
+                                  page.ensureWidgetVisible(button, 0, 18))
+                targets.append((button, None, 'rect'))
+            targets.append((bottom_tabs, 0, 'rect'))
+        elif action == 'info-menu':
+            targets.append((self.top_bar.app_menu_button, None, 'rect'))
+        elif action in ('personalization', 'tooltip-settings'):
+            self.bottom_panel.open_startup_settings('app.personalization')
+            page = settings._pages.get('app.personalization')
+            if page is not None:
+                controls = ((page.themes, page.languages) if action == 'personalization'
+                            else (page.tooltips_enabled, page.tooltip_delay))
+                if controls:
+                    page.ensureWidgetVisible(controls[0], 0, 16)
+                targets.extend((control, None, 'rect') for control in controls)
+        elif action == 'panels':
+            targets.extend(((self.top_bar, None, 'outline'),
+                            (self.bottom_panel.header, None, 'outline')))
+        elif action == 'workspace-tabs':
+            targets.extend((top_tabs, i, 'rect') for i in range(top_tabs.count()) if top_tabs.isTabVisible(i))
+            targets.extend((bottom_tabs, i, 'rect') for i in range(bottom_tabs.count()) if bottom_tabs.isTabVisible(i))
+        elif action == 'widget-tabs':
+            for side in ('left', 'right'):
+                if getattr(self, side + '_collapsed', False):
+                    self._on_toggle_panel(side)
+            for slot in self.dock_manager.slots.values():
+                targets.extend((slot.tabBar(), i, 'rect') for i in range(slot.count()))
+        elif action in ('startup-tab', 'core-start'):
+            self._onboarding_show_bottom_workspace(0)
+            if action == 'startup-tab':
+                targets.append((bottom_tabs, 0, 'rect'))
+            if action == 'core-start':
+                targets.append((startup.core_hub, None, 'circle'))
+        elif action in ('chat-tab', 'projects-tab'):
+            index = (CentralWorkspaceContainer.CHAT_VIEW_INDEX if action == 'chat-tab'
+                     else CentralWorkspaceContainer.PROJECTS_VIEW_INDEX)
+            self._onboarding_show_top_workspace(index)
+            targets.append((top_tabs, index, 'rect'))
+        elif action in ('sessions-tab', 'tasks-tab', 'filesystem-tabs'):
+            names = {'sessions-tab': ('sessions_panel',),
+                     'tasks-tab': ('tasks_panel',),
+                     'filesystem-tabs': ('file_manager_panel', 'materials_panel')}[action]
+            for name in names:
+                targets.extend(self._onboarding_dock_target(name))
+        elif action in ('chat-attach', 'chat-tags', 'chat-tools'):
+            self._onboarding_show_top_workspace(CentralWorkspaceContainer.CHAT_VIEW_INDEX)
+            button = {'chat-attach': chat.add_btn, 'chat-tags': chat.tags_btn,
+                      'chat-tools': chat.input_controls.tools_button}[action]
+            targets.append((button, None, 'rect'))
+        elif action in ('module-tab', 'pipeline-tab', 'pipeline-help'):
+            index = 3 if action == 'module-tab' else 2
+            self._onboarding_show_bottom_workspace(index)
+            targets.append((bottom_tabs, index, 'rect'))
+            if action == 'pipeline-help':
+                # Help is a control on an open pipeline document, not on the
+                # empty workspace. Do not create files behind the user's back.
+                document = self.bottom_panel.modules_view.current_document()
+                canvas = getattr(document, 'canvas', None)
+                help_button = getattr(canvas, 'help_button', None)
+                if help_button is not None:
+                    targets.append((help_button, None, 'rect'))
+        else:
+            return
+        self._onboarding_highlight_serial += 1
+        serial = self._onboarding_highlight_serial
+        QTimer.singleShot(75, self, lambda targets=targets, serial=serial:
+                          self._onboarding_highlight(targets)
+                          if serial == self._onboarding_highlight_serial else None)
+
     def _show_subagents_panel(self, identity):
         panel = self.dock_manager.panels.get('subagents_panel')
         if panel is None:return
@@ -684,6 +875,12 @@ class MainWindow(QMainWindow):
             (build_widget('widget.mcp', McpPanel, self), DockSlotPosition.RIGHT_BOTTOM),
             (build_widget('widget.terminal', TerminalPanel, self), DockSlotPosition.RIGHT_TOP),
         ]
+        # First by default in the lower-right tab strip, including after an
+        # upgrade from the old Markdown-only onboarding.
+        if not self.state_manager.get('onboarding_guide_v2_completed', False):
+            lesson = self._create_onboarding_panel(
+                initial_page=self.state_manager.get('onboarding_guide_v2_page_index', 0))
+            system_panels.insert(0, (lesson, DockSlotPosition.RIGHT_BOTTOM))
         registered_panels.extend(system_panels)
 
         # UI активных модулей подключается тем загрузчиком, который раньше существовал,

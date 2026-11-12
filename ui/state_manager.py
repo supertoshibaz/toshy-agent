@@ -13,6 +13,8 @@ class StateManager:
             "language": "en",
             "theme": "toshy",
             "active_view_index": 0,
+            "onboarding_guide_v2_completed": False,
+            "onboarding_guide_v2_page_index": 0,
             "dock_positions": {
                 "sessions_panel": "left_top",
                 "tasks_panel": "right_top",
