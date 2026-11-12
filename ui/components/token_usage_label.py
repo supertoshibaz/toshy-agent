@@ -53,7 +53,9 @@ def number(value):
 
 class _TokenUsagePopup(QFrame):
     def __init__(self, anchor):
-        super().__init__(anchor, Qt.ToolTip | Qt.FramelessWindowHint)
+        # This panel contains controls; native tooltip windows may be dismissed
+        # on mouse press by Windows before the button receives its release.
+        super().__init__(anchor, Qt.Tool | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint)
         self.anchor = anchor
         self._data = {}
         self._place_timer = QTimer(self)
@@ -423,6 +425,9 @@ class TokenUsageLabel(QLabel):
             self._popup.hide()
 
     def _hide_if_outside(self):
+        grabber = QWidget.mouseGrabber()
+        if self._popup is not None and grabber is not None and (grabber is self._popup or self._popup.isAncestorOf(grabber)):
+            return  # Finish button presses, selection and scrollbar drags first.
         position = QCursor.pos()
         if self._text_rect.contains(self.mapFromGlobal(position)):
             return
@@ -430,16 +435,28 @@ class TokenUsageLabel(QLabel):
             return
         self.hide_popup()
 
+    def _hide_if_inactive(self):
+        if self._popup is None or not isValid(self._popup) or not self._popup.isVisible():
+            return
+        # Wait until native activation has settled: clicking a panel control
+        # deactivates the main window, but does not leave the application.
+        active = QApplication.activeWindow()
+        if (QApplication.applicationState() != Qt.ApplicationActive or
+                (active is not None and active is not self.window() and active is not self._popup
+                 and not self._popup.isAncestorOf(active))):
+            self.hide_popup()
+
     def eventFilter(self, watched, event):
         if self._popup is not None and isValid(self._popup) and self._popup.isVisible():
             kind = event.type()
             if kind == QEvent.KeyPress and event.key() == Qt.Key_Escape:
                 self.hide_popup()
                 return True
-            if watched is self.window() and kind in (QEvent.Move, QEvent.Resize, QEvent.Hide, QEvent.Close, QEvent.WindowDeactivate):
+            if watched is self.window() and kind in (QEvent.Move, QEvent.Resize, QEvent.Hide, QEvent.Close):
                 self.hide_popup()
-            elif kind == QEvent.ApplicationDeactivate:
-                self.hide_popup()
+            elif (kind == QEvent.ApplicationDeactivate or
+                    (kind == QEvent.WindowDeactivate and (watched is self.window() or watched is self._popup))):
+                QTimer.singleShot(0, self._hide_if_inactive)
             elif kind == QEvent.MouseButtonPress:
                 self._hide_if_outside()
         return super().eventFilter(watched, event)
