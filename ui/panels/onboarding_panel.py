@@ -5,9 +5,10 @@ The host window owns the allowlist of supported action IDs; links never open
 external URLs or execute arbitrary commands.
 """
 import time
+from pathlib import Path
 
 from PySide6.QtCore import Qt, QRectF, QTimer, Signal, QEvent
-from PySide6.QtGui import QColor, QPainter, QPainterPath, QPalette
+from PySide6.QtGui import QColor, QPainter, QPainterPath, QPalette, QTextCursor, QBrush, QTextCharFormat
 from PySide6.QtWidgets import (
     QFrame, QHBoxLayout, QLabel, QTextBrowser, QToolButton, QVBoxLayout, QWidget,
 )
@@ -20,7 +21,23 @@ from ui.styles.binding import apply_style
 from ui.themes.manager import theme_manager
 
 
-PAGE_KEYS = tuple(f'onboarding.page.{number:02d}' for number in range(1, 11))
+# Pages are editable Markdown resources; the English directory defines their order.
+PAGES_ROOT = Path(__file__).resolve().parents[1] / 'docs' / 'onboarding'
+PAGE_IDS = tuple(path.stem for path in sorted((PAGES_ROOT / 'en').glob('[0-9][0-9].md')))
+
+
+def load_page(page_id: str) -> str:
+    """Load the active locale's page, falling back to the canonical English page."""
+    language = i18n.current_lang
+    for candidate in (PAGES_ROOT / language / f'{page_id}.md',
+                      PAGES_ROOT / 'en' / f'{page_id}.md'):
+        if candidate.is_file():
+            try:
+                return candidate.read_text(encoding='utf-8')
+            except OSError:
+                pass
+    return f'# Missing onboarding page {page_id}'
+
 
 
 class CompletionShade(QWidget):
@@ -47,7 +64,7 @@ class OnboardingContent(QWidget):
 
     def __init__(self, initial_page=0, parent=None):
         super().__init__(parent)
-        self.page_index = max(0, min(int(initial_page), len(PAGE_KEYS) - 1))
+        self.page_index = max(0, min(int(initial_page), max(0, len(PAGE_IDS) - 1)))
         self._closing_started = None
         self.setObjectName('OnboardingContent')
 
@@ -58,30 +75,31 @@ class OnboardingContent(QWidget):
         self.surface = QFrame(self)
         self.surface.setObjectName('OnboardingSurface')
         surface_layout = QVBoxLayout(self.surface)
-        surface_layout.setContentsMargins(10, 10, 10, 10)
-        surface_layout.setSpacing(8)
+        surface_layout.setContentsMargins(6, 5, 6, 6)
+        surface_layout.setSpacing(5)
         layout.addWidget(self.surface)
 
         self.markdown = QTextBrowser(self.surface)
         self.markdown.setObjectName('OnboardingMarkdown')
         self.markdown.setFrameShape(QFrame.NoFrame)
+        self.markdown.document().setDocumentMargin(0)
         self.markdown.setOpenLinks(False)
         self.markdown.setOpenExternalLinks(False)
         self.markdown.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
         self.markdown.anchorClicked.connect(self._open_action)
         apply_style(self.markdown,
             'QTextBrowser#OnboardingMarkdown {background:transparent; color:@text.primary@; '
-            'border:0; padding:4px;}')
+            'border:0; padding:0; margin:0;}')
         surface_layout.addWidget(self.markdown, 1)
 
         self.navigation = QFrame(self.surface)
         self.navigation.setObjectName('OnboardingNavigation')
-        self.navigation.setFixedHeight(40)
+        self.navigation.setFixedHeight(36)
         self.navigation.installEventFilter(self)
         apply_style(self.navigation,
             'QFrame#OnboardingNavigation {background:@background.surface@; border:0; border-radius:6px;}')
         nav_layout = QHBoxLayout(self.navigation)
-        nav_layout.setContentsMargins(6, 4, 6, 4)
+        nav_layout.setContentsMargins(4, 4, 4, 4)
         nav_layout.setSpacing(5)
 
         self.back = self._button('left', 'onboarding.previous', self._previous)
@@ -111,6 +129,15 @@ class OnboardingContent(QWidget):
 
     def _button(self, icon, tooltip_key, callback):
         button = QToolButton(self.navigation)
+        button.setObjectName('OnboardingNavButton')
+        apply_style(button, 'QToolButton#OnboardingNavButton {'
+                    'border-radius:0; padding:0; margin:0;'
+                    'background:@background.surface@; color:@text.primary@;'
+                    'border:1px solid @border.subtle@;}'
+                    'QToolButton#OnboardingNavButton:hover {'
+                    'background:@control.hover@;}'
+                    'QToolButton#OnboardingNavButton:disabled {'
+                    'color:@text.disabled@;}')
         set_icon(button, icon, size=16, square=True)
         button.setFixedSize(28, 28)
         button.setCursor(Qt.PointingHandCursor)
@@ -131,19 +158,57 @@ class OnboardingContent(QWidget):
         self.markdown.setPalette(palette)
         self.markdown.document().setDefaultStyleSheet(
             f'a {{color:{colors["link"]};text-decoration:underline;}}'
-            'p { margin-top:0px; margin-bottom:10px; }'
+            'body { margin:0; padding:0; }'
+            'h1 {font-size:18px; margin:0 0 5px 0;}'
+            'h2 {font-size:16px; margin:4px 0;}'
+            'p {margin:0 0 4px 0;}'
+            'ul, ol {margin:3px 0; padding-left:16px;}'
+            'li {margin:0; padding:0;}'
         )
         self._render_markdown()
 
     def _render_markdown(self):
         position = self.markdown.verticalScrollBar().value()
-        self.markdown.setMarkdown(str(tr(PAGE_KEYS[self.page_index])))
+        page_id = PAGE_IDS[self.page_index] if PAGE_IDS else '01'
+        self.markdown.setMarkdown(load_page(page_id))
+        # Qt Markdown can retain its own block margins despite the default CSS.
+        # Normalize them without touching the list/anchor character formats.
+        block = self.markdown.document().begin()
+        while block.isValid():
+            fmt = block.blockFormat()
+            heading = fmt.headingLevel()
+            fmt.setTopMargin(3 if heading else 0)
+            fmt.setBottomMargin(5 if heading else 3)
+            cursor = QTextCursor(block)
+            cursor.setBlockFormat(fmt)
+            block = block.next()
+        # Qt Markdown gives links a built-in blue foreground in some versions,
+        # overriding the palette and default document stylesheet. Apply the
+        # theme-aware onboarding accent to each anchor fragment explicitly.
+        link_format = QTextCharFormat()
+        link_format.setForeground(QBrush(QColor(onboarding_colors()['link'])))
+        link_format.setFontUnderline(True)
+        anchor_ranges = []
+        block = self.markdown.document().begin()
+        while block.isValid():
+            fragment = block.begin()
+            while not fragment.atEnd():
+                piece = fragment.fragment()
+                if piece.isValid() and piece.charFormat().isAnchor():
+                    anchor_ranges.append((piece.position(), piece.length()))
+                fragment += 1
+            block = block.next()
+        for start, length in anchor_ranges:
+            cursor = QTextCursor(self.markdown.document())
+            cursor.setPosition(start)
+            cursor.setPosition(start + length, QTextCursor.KeepAnchor)
+            cursor.mergeCharFormat(link_format)
         self.markdown.verticalScrollBar().setValue(position)
 
     def _render_page(self):
         self._render_markdown()
-        self.page_counter.setText(f'{self.page_index + 1} / {len(PAGE_KEYS)}')
-        last = self.page_index == len(PAGE_KEYS) - 1
+        self.page_counter.setText(f'{self.page_index + 1} / {len(PAGE_IDS)}')
+        last = self.page_index == len(PAGE_IDS) - 1
         self.back.setEnabled(self.page_index > 0)
         self.close_early.setVisible(not last)
         set_icon(self.close_early, 'close', size=16, square=True)
@@ -173,13 +238,13 @@ class OnboardingContent(QWidget):
         self._change_page(self.page_index - 1)
 
     def _next_or_complete(self):
-        if self.page_index == len(PAGE_KEYS) - 1:
+        if self.page_index == len(PAGE_IDS) - 1:
             self._toggle_complete()
         else:
             self._change_page(self.page_index + 1)
 
     def _change_page(self, target):
-        if self._closing_started is not None or not 0 <= target < len(PAGE_KEYS):
+        if self._closing_started is not None or not 0 <= target < len(PAGE_IDS):
             return
         self.page_index = target
         self._render_page()
@@ -190,7 +255,7 @@ class OnboardingContent(QWidget):
             self.cancel_completion()
             return
         self._closing_started = time.monotonic()
-        active = self.forward if self.page_index == len(PAGE_KEYS) - 1 else self.close_early
+        active = self.forward if self.page_index == len(PAGE_IDS) - 1 else self.close_early
         set_icon(active, 'stop', size=16, square=True)
         set_text(active, 'onboarding.cancel', setter='setToolTip')
         set_text(active, 'onboarding.cancel', setter='setAccessibleName')

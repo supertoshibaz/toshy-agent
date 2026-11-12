@@ -42,7 +42,11 @@ class DockTabBar(QTabBar):
         painter.setRenderHint(QPainter.Antialiasing)
         colors = onboarding_colors()
         for index in range(self.count()):
-            if self.tabData(index) != "onboarding":
+            # Resolve the actual dock identity; captions and tab metadata may
+            # change during live translation or drag/move between dock slots.
+            slot = self.parentWidget()
+            panel = slot.widget(index) if isinstance(slot, QTabWidget) else None
+            if getattr(panel, 'panel_id', None) != 'onboarding_panel':
                 continue
             rect = self.tabRect(index).adjusted(0, 0, -2, -1)
             if not rect.isValid() or not rect.intersects(event.rect()):
@@ -166,6 +170,7 @@ class DockSlot(QTabWidget):
         if panel.panel_id == "onboarding_panel":
             self.tabBar().setTabData(idx, "onboarding")
         self.setCurrentIndex(idx)
+        self.tabBar().update()
         self._update_visibility()
 
     def remove_dock_panel(self, panel: DockPanel):
@@ -179,6 +184,7 @@ class DockSlot(QTabWidget):
             widget = self.widget(idx)
             if isinstance(widget, DockPanel):
                 bind_caption(self, widget.get_title(), setter='setTabText', index=idx)
+        self.tabBar().update()
 
     def _update_visibility(self):
         has_tabs = self.count() > 0

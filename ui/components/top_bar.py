@@ -118,9 +118,10 @@ class TopBar(QWidget):
         from ui.icons import bind_popup
         bind_popup(self.app_menu, self.app_menu_button)
         self.app_menu.aboutToHide.connect(lambda: QTimer.singleShot(0, self._reset_app_menu_button))
+        # Onboarding is the first entry in the information menu.
+        self.onboarding_action = add_caption_action(self.app_menu, 'addAction', tr('docs.onboarding'))
         self.about_action = add_caption_action(self.app_menu, 'addAction', tr('btn_about', 'About'))
         self.help_action = add_caption_action(self.app_menu, 'addAction', tr('btn_help', 'Help'))
-        self.onboarding_action = add_caption_action(self.app_menu, 'addAction', tr('docs.onboarding'))
         self.toshy_mcp_action = add_caption_action(self.app_menu, 'addAction', tr('ui.menu.toshy_mcp'))
         self.plugins_action = localize(add_caption_action(self.app_menu, 'addAction', 'Plugins'), 'ui.top_bar.plugins_9514')
         self.update_action = localize(add_caption_action(self.app_menu, 'addAction', 'Update'), 'ui.top_bar.update_c1c1')
