@@ -6,6 +6,8 @@
 <a href="https://huggingface.co/toshibaz"><img src="https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="Hugging Face"></a>
 </p>
 
+## Attention! The project is currently in a rather rough state. A patch will be released soon that will fix most of the major issues.
+
 English · [Русский](README_ru.md)
 </div>
 
